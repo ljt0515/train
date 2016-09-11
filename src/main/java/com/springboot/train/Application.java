@@ -11,7 +11,7 @@ import com.springboot.train.util.HostUtils;
 /**
  * @author lijintao
  */
-@Controller
+@Controller 
 @EnableWebMvc
 @SpringBootApplication
 public class Application extends WebMvcConfigurerAdapter {
