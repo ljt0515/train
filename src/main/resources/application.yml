@@ -1,0 +1,19 @@
+server:
+    port: 80
+#    ssl:
+#      key-store: classpath:sample.jks
+#      key-password: password
+#      key-store-password: secret
+    context-path: #/
+logging:
+    config: classpath:logback.xml
+spring:
+    mvc:
+        view:
+            prefix: /templates/
+            suffix: .ftl
+    freemarker:
+        cache: true
+        request-context-attribute: request
+        checkTemplateLocation: true
+        contentType: text/html
