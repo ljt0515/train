@@ -27,7 +27,7 @@ public class MyHandlerInterceptor implements HandlerInterceptor {
 				request.setAttribute("httpClient", httpclient);
 			} catch (Exception e) {
 				e.printStackTrace();
-			}		
+			}
 		}
 		request.setAttribute("httpClient",attribute);
 		session.setAttribute("httpClient", attribute);

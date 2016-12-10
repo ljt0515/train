@@ -1,5 +1,21 @@
 package com.springboot.train.controller;
 
+import com.springboot.train.util.Cookie;
+import com.springboot.train.util.CookieUtil;
+import com.springboot.train.util.DateUtils;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,28 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.springboot.train.model.Passengers;
-import com.springboot.train.model.Train;
-import com.springboot.train.util.Cookie;
-import com.springboot.train.util.CookieUtil;
-import com.springboot.train.util.DateUtils;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 /**
  * 
  * @author lijintao
@@ -206,17 +200,17 @@ public class TrainController extends BaseController {
 		logger.info("urlStr----" + urlStr);
 		String result = new String(getHttpClient(request).doPost(urlStr));
 		logger.info("result----" + result);
-		return JSONObject.fromObject(result).toString();
+		return result;
 	}
 	//取消订单
 	@ResponseBody
 	@RequestMapping("/cancelNoCompleteMyOrder")
-	public String cancelNoCompleteMyOrder(HttpServletRequest request, String repeat_submit_token) throws IOException {
+	public String cancelNoCompleteMyOrder(HttpServletRequest request) throws IOException {
 		String urlStr = "https://kyfw.12306.cn/otn/queryOrder/cancelNoCompleteMyOrder?sequence_no=E076926220&cancel_flag=cancel_order&_json_att=";
 		logger.info("urlStr----" + urlStr);
 		String result = new String(getHttpClient(request).doPost(urlStr));
 		logger.info("result----" + result);
-		return JSONObject.fromObject(result).toString();
+		return result;
 	}
 	//查询未完成订单
 	@ResponseBody
@@ -226,7 +220,7 @@ public class TrainController extends BaseController {
 		logger.info("urlStr----" + urlStr);
 		String result = new String(getHttpClient(request).doPost(urlStr));
 		logger.info("result----" + result);
-		return JSONObject.fromObject(result).toString();
+		return result;
 	}
 
 	// 获取乘客信息
@@ -239,16 +233,14 @@ public class TrainController extends BaseController {
 		JSONObject fromObject = JSONObject.fromObject(result);
 		boolean isExist = fromObject.getJSONObject("data").getBoolean("isExist");
 		if (isExist) {
-			List<Passengers> list = (List<Passengers>) JSONArray
-					.toCollection(fromObject.getJSONObject("data").getJSONArray("normal_passengers"), Passengers.class);
-			model.addAttribute("list", list);
+			model.addAttribute("list", fromObject.getJSONObject("data").getJSONArray("normal_passengers"));
 		}
 		return "train/passengers";
 	}
 	//检查用户登录是否有效
 	@ResponseBody
 	@RequestMapping("/checkUser")
-	public String checkUser(HttpServletRequest request, Model model) throws IOException {
+	public String checkUser(HttpServletRequest request) throws IOException {
 		String urlStr = "https://kyfw.12306.cn/otn/login/checkUser";
 		String result = new String(getHttpClient(request).doPost(urlStr));
 		return result;
@@ -300,7 +292,7 @@ public class TrainController extends BaseController {
 			String fromStation, String toStation, String startDate) {
 		try {
 			String type = "ADULT";
-			String urlStr = "https://kyfw.12306.cn/otn/leftTicket/queryT?leftTicketDTO.train_date=" + startDate
+			String urlStr = "https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date=" + startDate
 					+ "&leftTicketDTO.from_station=" + fromStation + "&leftTicketDTO.to_station=" + toStation
 					+ "&purpose_codes=" + type;
 			logger.info("urlStr----" + urlStr);
@@ -309,9 +301,9 @@ public class TrainController extends BaseController {
 			if (!result.equals("-1")) {
 				JSONObject fromObject = JSONObject.fromObject(result);
 				System.out.println(fromObject);
-				List<Train> list = (List<Train>) JSONArray.toCollection(fromObject.getJSONArray("data"), Train.class);
-				model.addAttribute("list", list);
-				System.out.println(list.size());
+				//List<Train> list = (List<Train>) JSONArray.toCollection(fromObject.getJSONArray("data"), Train.class);
+				model.addAttribute("list", fromObject.getJSONArray("data"));
+				//System.out.println(list.size());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

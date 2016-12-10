@@ -113,6 +113,7 @@ function queryOrderWaitTime(datas){
 							win.close();
 						},
 						'取消' : function() {
+							win.close();
 						}
 					}
 				});
@@ -141,6 +142,28 @@ function submitOrderRequest(secretStr,start_time,train_no,from_station_telecode,
 	$("#to_station_name").val(to_station_name);
 	$("#location_code").val(location_code);
 	$("#station_train_code").val(station_train_code);
+	var passengerTicketStr=$("#passengerTicketStr").val();
+	if(passengerTicketStr==""){
+		var win = dialog.win.work({
+			title : "预定成功",
+			width : 30,
+			borderWidth : 8,
+			effect : 2,
+			content : '<div style="padding-top:12px; font-size:16px;">请选择出行人</div>',
+			icon : 'ico11',
+			button : {
+				'确认' : function() {
+					win.close();
+					$("#getPassengers").click();
+				},
+				'取消' : function() {
+					win.close();
+					dialog.tip.remove();
+				}
+			}
+		});
+		return;
+	}
 	$.ajax({
 		type : "POST",
 		url : path+"/index/submitOrderRequest",
@@ -150,7 +173,7 @@ function submitOrderRequest(secretStr,start_time,train_no,from_station_telecode,
 			dialog.tip.remove();
 			if(!data.status){
 				dialog.tip.work({type:'error', content :data.messages, timer : 2000});
-//				window.open ("https://kyfw.12306.cn/otn/queryOrder/initNoComplete");
+				//window.open ("https://kyfw.12306.cn/otn/queryOrder/initNoComplete");
 				return;
 			}
 			$("#globalRepeatSubmitToken").val(data.globalRepeatSubmitToken);
@@ -167,7 +190,7 @@ function submitOrderRequest(secretStr,start_time,train_no,from_station_telecode,
 	});
 }
 function setCookie(name,value,Days) {
-	var Days = 30;
+	Days = 30;
 	var exp = new Date();
 	exp.setTime(exp.getTime() + Days*24*60*60*1000);
 	document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
