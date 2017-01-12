@@ -1,5 +1,4 @@
 package com.springboot.train.model;
-
 public class Train {
 	private QueryLeftNewDTO queryLeftNewDTO;
 	private String secretStr;

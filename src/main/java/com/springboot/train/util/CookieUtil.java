@@ -1,12 +1,12 @@
 package com.springboot.train.util;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * cookieUtil
@@ -33,6 +33,11 @@ public class CookieUtil {
     public static void setCookie(HttpServletResponse resp, String cookieName, String cookieValue) {
 
         resp.addCookie(createCookie(cookieName, cookieValue));
+        resp.setHeader("Access-Control-Allow-Origin", "https://kyfw.12306.cn"); //请求源
+//        resp.setHeader("Access-Control-Allow-Methods","POST"); //请求方式POST, GET, OPTIONS
+        resp.setHeader("Access-Control-Max-Age", "3600"); //有效期
+//        resp.setHeader("Access-Control-Allow-Headers", "Content-Type","*"); //请求头类型
+        resp.setHeader("Access-Control-Allow-Credentials","true"); //是否支持cookie跨域
     }
 
     /**
