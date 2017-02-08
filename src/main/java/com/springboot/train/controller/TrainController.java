@@ -1,5 +1,21 @@
 package com.springboot.train.controller;
 
+import com.springboot.train.util.Cookie;
+import com.springboot.train.util.CookieUtil;
+import com.springboot.train.util.DateUtils;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -280,6 +296,9 @@ public class TrainController extends BaseController {
 				JSONObject fromObject = JSONObject.fromObject(result);
 				System.out.println(fromObject);
 				model.addAttribute("list", fromObject.getJSONArray("data"));
+				//List<Train> list = (List<Train>) JSONArray.toCollection(fromObject.getJSONArray("data"), Train.class);
+				model.addAttribute("list", fromObject.getJSONArray("data"));
+				//System.out.println(list.size());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

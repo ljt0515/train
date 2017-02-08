@@ -12,9 +12,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableWebMvc
 @EnableAdminServer
 @SpringBootApplication
-public class Application extends WebMvcConfigurerAdapter {
+public class  Application extends WebMvcConfigurerAdapter {
 
-	public static void main(String[] args) {
+	public static void  main(String[] args) {
 		SpringApplication.run(Application.class, args);
 //		HostUtils.addHostBinding("127.0.0.1", "test.kyfw.12306.cn");
 //		String url = "http://test.kyfw.12306.cn/index";
