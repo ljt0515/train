@@ -1,7 +1,14 @@
 package com.springboot.train.controller;
 
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.awt.image.CropImageFilter;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -11,10 +18,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
+import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +37,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.springboot.train.model.Passengers;
 import com.springboot.train.model.Train;
@@ -35,6 +47,7 @@ import com.springboot.train.util.DateUtils;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
 /**
  * 
  * @author lijintao
@@ -58,8 +71,8 @@ public class TrainController extends BaseController {
 	// 查询列车经停站
 	@ResponseBody
 	@RequestMapping("/queryByTrainNo")
-	public JSONObject queryByTrainNo(HttpServletRequest request, String trainNo, String fromStation,
-			String toStation, String startDate) throws IOException {
+	public JSONObject queryByTrainNo(HttpServletRequest request, String trainNo, String fromStation, String toStation,
+			String startDate) throws IOException {
 		String urlStr = "https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no=" + trainNo + "&from_station_telecode="
 				+ fromStation + "&to_station_telecode=" + toStation + "&depart_date=" + startDate;
 		logger.info("urlStr----" + urlStr);
@@ -71,8 +84,8 @@ public class TrainController extends BaseController {
 	// 登录
 	@ResponseBody
 	@RequestMapping("/loginAysnSuggest")
-	public JSONObject loginAysnSuggest(HttpServletRequest request,HttpServletResponse response, String user_name, String password, String randCode)
-			throws IOException {
+	public JSONObject loginAysnSuggest(HttpServletRequest request, HttpServletResponse response, String user_name,
+			String password, String randCode) throws IOException {
 		String urlStr = "https://kyfw.12306.cn/otn/login/loginAysnSuggest?loginUserDTO.user_name=" + user_name
 				+ "&userDTO.password=" + password + "&randCode=" + randCode + "&rand=sjrand";
 		logger.info("urlStr----" + urlStr);
@@ -88,19 +101,20 @@ public class TrainController extends BaseController {
 		String string = new String(getHttpClient(request).doPost("https://kyfw.12306.cn/otn/login/userLogin"));
 		String reg = "<span style=\"width:50px;\">[\u4e00-\u9fa5]{0,100}</span>";
 		Matcher m = Pattern.compile(reg).matcher(string);
-		String username="";
+		String username = "";
 		while (m.find()) {
 			String r = m.group().trim();
-			username=r.trim()!=""?r.split("\">")[1]:"";
+			username = r.trim() != "" ? r.split("\">")[1] : "";
 		}
 		HttpSession session = request.getSession();
-		username = username.substring(0,username.length()-7);
+		username = username.substring(0, username.length() - 7);
 		session.setAttribute("username", username);
 		JSONObject fromObject = JSONObject.fromObject(result);
 		fromObject.put("username", username);
 		return fromObject;
 	}
-	//退出登录
+
+	// 退出登录
 	@ResponseBody
 	@RequestMapping("/loginOut")
 	public String loginOut(HttpServletRequest request) throws IOException {
@@ -109,17 +123,20 @@ public class TrainController extends BaseController {
 		logger.info("loginOut----" + result);
 		return "1";
 	}
+
 	@RequestMapping("/login")
 	public String login(HttpServletRequest request) throws IOException {
 		clearSession(request);
 		return "train/login";
 	}
+
 	@RequestMapping("/img")
-	public String img(Model model,@RequestParam(defaultValue="login")String moduled) throws IOException {
+	public String img(Model model, @RequestParam(defaultValue = "login") String moduled) throws IOException {
 		model.addAttribute("moduled", moduled);
 		return "train/img";
 	}
-	//预提交订单
+
+	// 预提交订单
 	@ResponseBody
 	@RequestMapping("/submitOrderRequest")
 	public String submitOrderRequest(HttpServletRequest request, String secretStr, String train_date,
@@ -137,7 +154,8 @@ public class TrainController extends BaseController {
 		}
 		return JSONObject.fromObject(globalRepeatSubmitToken(request)).toString();
 	}
-	//检查订单有效
+
+	// 检查订单有效
 	@ResponseBody
 	@RequestMapping("/checkOrderInfo")
 	public String checkOrderInfo(HttpServletRequest request, String randCode, String oldPassengerStr,
@@ -152,18 +170,19 @@ public class TrainController extends BaseController {
 		logger.info("result----" + result);
 		JSONObject json = JSONObject.fromObject(result);
 		if (!json.getBoolean("status")) {
-			JSONObject jsons=new JSONObject();
+			JSONObject jsons = new JSONObject();
 			jsons.put("submitStatus", json.getBoolean("status"));
 			jsons.put("errMsg", json.getString("messages"));
 			json.put("data", jsons);
 			return json.toString();
 		}
-		result=getQueueCount(request, train_date, train_no, stationTrainCode, seatType, fromStationTelecode, toStationTelecode,
-				leftTicket, repeat_submit_token, passengerTicketStr, oldPassengerStr, randCode, key_check_isChange,
-				train_location);
-		return result==null?"下单出错":result;
+		result = getQueueCount(request, train_date, train_no, stationTrainCode, seatType, fromStationTelecode,
+				toStationTelecode, leftTicket, repeat_submit_token, passengerTicketStr, oldPassengerStr, randCode,
+				key_check_isChange, train_location);
+		return result == null ? "下单出错" : result;
 	}
-	//获取余票
+
+	// 获取余票
 	public String getQueueCount(HttpServletRequest request, String train_date, String train_no, String stationTrainCode,
 			String seatType, String fromStationTelecode, String toStationTelecode, String leftTicket,
 			String repeat_submit_token, String passengerTicketStr, String oldPassengerStr, String randCode,
@@ -176,11 +195,12 @@ public class TrainController extends BaseController {
 		logger.info("urlStr----" + urlStr);
 		String result = new String(getHttpClient(request).doPost(urlStr));
 		logger.info("result----" + result);
-		result= confirmSingleForQueue(request, passengerTicketStr, oldPassengerStr, randCode,
-				key_check_isChange, leftTicket, repeat_submit_token, train_location);
+		result = confirmSingleForQueue(request, passengerTicketStr, oldPassengerStr, randCode, key_check_isChange,
+				leftTicket, repeat_submit_token, train_location);
 		return result;
 	}
-	//提交订单 结束
+
+	// 提交订单 结束
 	public String confirmSingleForQueue(HttpServletRequest request, String passengerTicketStr, String oldPassengerStr,
 			String randCode, String key_check_isChange, String leftTicketStr, String repeat_submit_token,
 			String train_location) throws IOException {
@@ -198,17 +218,19 @@ public class TrainController extends BaseController {
 		}
 		return json.toString();
 	}
+
 	@ResponseBody
 	@RequestMapping("/queryOrderWaitTime")
 	public String queryOrderWaitTime(HttpServletRequest request, String repeat_submit_token) throws IOException {
-		String urlStr = "https://kyfw.12306.cn/otn/confirmPassenger/queryOrderWaitTime?random="+System.currentTimeMillis()
-		+"&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN="+repeat_submit_token;
+		String urlStr = "https://kyfw.12306.cn/otn/confirmPassenger/queryOrderWaitTime?random="
+				+ System.currentTimeMillis() + "&tourFlag=dc&_json_att=&REPEAT_SUBMIT_TOKEN=" + repeat_submit_token;
 		logger.info("urlStr----" + urlStr);
 		String result = new String(getHttpClient(request).doPost(urlStr));
 		logger.info("result----" + result);
 		return JSONObject.fromObject(result).toString();
 	}
-	//取消订单
+
+	// 取消订单
 	@ResponseBody
 	@RequestMapping("/cancelNoCompleteMyOrder")
 	public String cancelNoCompleteMyOrder(HttpServletRequest request, String repeat_submit_token) throws IOException {
@@ -218,7 +240,8 @@ public class TrainController extends BaseController {
 		logger.info("result----" + result);
 		return JSONObject.fromObject(result).toString();
 	}
-	//查询未完成订单
+
+	// 查询未完成订单
 	@ResponseBody
 	@RequestMapping("/queryMyOrderNoComplete")
 	public String queryMyOrderNoComplete(HttpServletRequest request) throws IOException {
@@ -245,7 +268,8 @@ public class TrainController extends BaseController {
 		}
 		return "train/passengers";
 	}
-	//检查用户登录是否有效
+
+	// 检查用户登录是否有效
 	@ResponseBody
 	@RequestMapping("/checkUser")
 	public String checkUser(HttpServletRequest request, Model model) throws IOException {
@@ -259,7 +283,7 @@ public class TrainController extends BaseController {
 	@RequestMapping("/checkRandCodeAnsyn")
 	public JSONObject checkRandCodeAnsyn(HttpServletRequest request, String randCode,
 			@RequestParam(value = "repeat_submit_token", required = false) String repeat_submit_token)
-					throws IOException {
+			throws IOException {
 		String urlStr = "https://kyfw.12306.cn/otn/passcodeNew/checkRandCodeAnsyn?randCode=" + randCode;
 		if (repeat_submit_token != null && !"".equals(repeat_submit_token)) {
 			urlStr += "&_json_att=&REPEAT_SUBMIT_TOKEN=" + repeat_submit_token + "&rand=randp";
@@ -294,10 +318,13 @@ public class TrainController extends BaseController {
 		sos.close();
 	}
 
+	Lock lock = new ReentrantLock();
+
 	// 查询余票
 	@RequestMapping("/query")
-	public String train(HttpServletRequest request, Model model,
-			String fromStation, String toStation, String startDate) {
+	public synchronized String train(HttpServletRequest request, Model model, String fromStation, String toStation,
+			String startDate) {
+		lock.lock();
 		try {
 			String type = "ADULT";
 			String urlStr = "https://kyfw.12306.cn/otn/leftTicket/queryT?leftTicketDTO.train_date=" + startDate
