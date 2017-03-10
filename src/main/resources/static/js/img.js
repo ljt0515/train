@@ -498,7 +498,7 @@ ImgCropper.prototype = {
 	//容器对象,拖放缩放对象,图片地址,宽度,高度 
 	initialize: function(container, drag, url, width, height, options) {
 		var oThis = this;
-
+		$("#"+drag).css("display","block");
 		//容器对象 
 		this.Container = _$(container);
 		this.Container.style.position = "relative";
