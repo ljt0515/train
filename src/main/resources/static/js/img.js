@@ -361,9 +361,10 @@ Resize.prototype = {
 		this._fun(window.event || e);
 		//设置样式 
 		//因为计算用的offset是把边框算进去的所以要减去 
-		var _width=(this.style_width+this.style_height)/2;
-		this._obj.style.width = _width- this._xBorder + "px";
-		this._obj.style.height = _width - this._yBorder + "px";
+		var _size=(this.style_width+this.style_height)/2;
+		
+		this._obj.style.width = _size- this._xBorder + "px";
+		this._obj.style.height = _size - this._yBorder + "px";
 		this._obj.style.top = this.style_top + "px";
 		this._obj.style.left = this.style_left + "px";
 		//附加程序 

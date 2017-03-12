@@ -47,17 +47,15 @@ if (typeof window.mf.upload == "undefined") {
 			    	 var state = data.state;
 			    	 var src = data.url;
 			    	 if(state=='SUCCESS') {
-			    		 ic = new ImgCropper("bgDiv", "dragDiv", src, 500, 400, {
-			 				dragTop: 50,
-			 				dragLeft: 50,
+			    		 ic = new ImgCropper("bgDiv", "dragDiv", src, 400, 400, {
+			 				dragTop: 150,
+			 				dragLeft: 150,
 			 				Right: "rRight",
-			 				Left: "rLeft",
-			 				Up: "rUp",
 			 				Down: "rDown",
 			 				View: "viewDiv",
 			 				viewSize: 50,
 			 				MaxView: "maxView",
-			 				maxViewSize: 100
+			 				maxViewSize: 120
 			 			})
 			    	 } else {
 			    		 alert(state);
